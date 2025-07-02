@@ -1,13 +1,15 @@
 {
-  "name": "minecraft-afk-bot-termux",
+  "name": "survival-bots",
   "version": "1.0.0",
-  "description": "A Minecraft AFK bot designed for Termux.",
+  "description": "Multi survival bots for Aternos server",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
   "dependencies": {
-    "mineflayer": "^4.29.0",
-    "vec3": "^0.1.10"
+    "mineflayer": "^4.17.0",
+    "mineflayer-pathfinder": "^2.10.1",
+    "mineflayer-collectblock": "^1.2.1",
+    "vec3": "^0.1.7"
   }
 }
