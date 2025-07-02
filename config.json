@@ -1,5 +1,7 @@
 {
   "serverHost": "EternxlsSMP.aternos.me",
   "serverPort": 48918,
-  "botUsername": "DrakonTide"
+  "botBaseName": "Benaam",
+  "botCount": 5,
+  "botPassword": "3043AA"
 }
