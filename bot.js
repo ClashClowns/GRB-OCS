@@ -2,77 +2,85 @@ const mineflayer = require('mineflayer');
 const config = require('./config.json');
 const { Vec3 } = require('vec3');
 
-let bot;
-let jumpInterval, chatInterval, rotateInterval;
+const botCount = config.botCount || 5; // Number of bots to run
 
-function createBot() {
-  bot = mineflayer.createBot({
-    host: config.serverHost,
-    port: config.serverPort,
-    username: config.botUsername,
-    auth: 'offline',
-    version: false,
-    viewDistance: 'tiny'
-  });
-
-  bot.once('spawn', () => {
-    console.log(`✅ ${config.botUsername} joined the server.`);
-    bot.chat('/login 3043AA');
-
-    // 🔁 Anti-AFK jump every 40s
-    let toggle = false;
-    jumpInterval = setInterval(() => {
-      if (!bot || !bot.entity) return;
-      bot.setControlState('jump', toggle);
-      toggle = !toggle;
-    }, 40000);
-
-    // 💬 Auto chat every 120s
-    const messages = ["I'm Areeb I like boys", "Areeb loves Dihh"];
-    let msgIndex = 0;
-    chatInterval = setInterval(() => {
-      if (!bot) return;
-      bot.chat(messages[msgIndex]);
-      msgIndex = (msgIndex + 1) % messages.length;
-    }, 120000);
-
-    // 🔁 Auto rotate slightly every 1s
-    let yaw = 0;
-    rotateInterval = setInterval(() => {
-      if (!bot || !bot.entity) return;
-      yaw += 0.1;
-      bot.look(yaw, 0, true);
-    }, 1000);
-  });
-
-  bot.on('end', () => {
-    console.log('❌ Bot was disconnected. Reconnecting in 60s...');
-    reconnectWithDelay();
-  });
-
-  bot.on('error', err => {
-    console.log(`⚠️ Bot error: ${err.message}`);
-    reconnectWithDelay();
-  });
+for (let i = 1; i <= botCount; i++) {
+  createBot(i);
 }
 
-function reconnectWithDelay() {
-  if (bot) {
-    try {
-      bot.quit();
-    } catch (_) {}
-    bot = null;
+function createBot(number) {
+  let bot;
+  let jumpInterval, chatInterval, rotateInterval;
+
+  function startBot() {
+    bot = mineflayer.createBot({
+      host: config.serverHost,
+      port: config.serverPort,
+      username: `${config.botBaseName}${number}`,
+      auth: 'offline',
+      version: false,
+      viewDistance: 'tiny'
+    });
+
+    bot.once('spawn', () => {
+      console.log(`✅ Bot${number} joined the server.`);
+
+      // Register and login
+      bot.chat(`/register ${config.botPassword} ${config.botPassword}`);
+      bot.chat(`/login ${config.botPassword}`);
+
+      // 🔁 Anti-AFK jump every 40s
+      let toggle = false;
+      jumpInterval = setInterval(() => {
+        if (!bot || !bot.entity) return;
+        bot.setControlState('jump', toggle);
+        toggle = !toggle;
+      }, 40000);
+
+      // 💬 Auto chat every 120s
+      const messages = ["I'm Areeb I like boys", "Areeb loves Dihh"];
+      let msgIndex = 0;
+      chatInterval = setInterval(() => {
+        if (!bot) return;
+        bot.chat(messages[msgIndex]);
+        msgIndex = (msgIndex + 1) % messages.length;
+      }, 120000);
+
+      // 🔁 Auto rotate every 1s
+      let yaw = 0;
+      rotateInterval = setInterval(() => {
+        if (!bot || !bot.entity) return;
+        yaw += 0.1;
+        bot.look(yaw, 0, true);
+      }, 1000);
+    });
+
+    bot.on('end', () => {
+      console.log(`❌ Bot${number} was disconnected. Reconnecting in 60s...`);
+      reconnectWithDelay();
+    });
+
+    bot.on('error', err => {
+      console.log(`⚠️ Bot${number} error: ${err.message}`);
+      reconnectWithDelay();
+    });
   }
 
-  // Clear all intervals to prevent crash
-  clearInterval(jumpInterval);
-  clearInterval(chatInterval);
-  clearInterval(rotateInterval);
+  function reconnectWithDelay() {
+    if (bot) {
+      try { bot.quit(); } catch (_) {}
+      bot = null;
+    }
 
-  setTimeout(() => {
-    console.log('🔁 Attempting to reconnect...');
-    createBot();
-  }, 60000); // 🔁 Reconnect after 60 seconds
+    clearInterval(jumpInterval);
+    clearInterval(chatInterval);
+    clearInterval(rotateInterval);
+
+    setTimeout(() => {
+      console.log(`🔁 Bot${number} attempting to reconnect...`);
+      startBot();
+    }, 60000);
+  }
+
+  startBot();
 }
-
-createBot();
